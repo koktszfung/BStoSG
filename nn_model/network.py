@@ -27,7 +27,7 @@ class Set(Dataset):
                         continue
                     data_input_np = data_input_np.flatten().T
                     data_label_np = np.zeros(230).T
-                    data_label_np[data_json["number"] - 1] = 1
+                    data_label_np[data_json["number"] - 1] = 100
                 self.data_input.append(torch.from_numpy(data_input_np).float())
                 self.data_label.append(torch.from_numpy(data_label_np).float())
                 if len(self.data_input) >= num_data:
@@ -60,52 +60,69 @@ class Net(torch.nn.Module):
 
 
 def train(device: torch.device, network: torch.nn.Module, optimizer, criterion,
-          data_loader: DataLoader) -> torch.tensor:
-    print("train start")
-    for batch in data_loader:
-        batch_input, batch_label = batch
-        batch_size = batch_input.shape[0]
-        for i in range(batch_size):
-            # reset gradient history
-            optimizer.zero_grad()  # zero the gradient buffers
-            # read data
-            data_input, data_label = batch_input[i], batch_label[i]
-            data_input, data_label = data_input.to(device), data_label.to(device)
-            # calculate loss
-            output = network(data_input)
-            loss = criterion(output, data_label)
-            # optimize
-            loss.backward()  # backpropagate and store changes needed
-            optimizer.step()  # update weight and bias
-            # progress bar
-            if i % int(batch_size / 10) == 0:
-                print("\r{}%".format(i / batch_size * 100), end="")
-    print("\r100%")
-    print("train end")
+          data_loader: DataLoader, epoch_per_run) -> torch.tensor:
+    batch_per_loader = len(data_loader)
+    item_per_batch = data_loader.batch_size
+    for e in range(epoch_per_run):
+        for b, batch in enumerate(data_loader):
+            batch_input, batch_label = batch
+            for i in range(item_per_batch):
+                # reset gradient history
+                optimizer.zero_grad()  # zero the gradient buffers
+                # read data
+                data_input, data_label = batch_input[i], batch_label[i]
+                data_input, data_label = data_input.to(device), data_label.to(device)
+                # feed
+                output = network(data_input)
+                # calculate loss
+                cur_loss = criterion(output, data_label)
+                # optimize
+                cur_loss.backward()  # backpropagate and store changes needed
+                optimizer.step()  # update weight and bias
+
+                # progress bar
+                if i % int(item_per_batch / 10) == 0:
+                    print("\rtrain: epoch:{}/{} batch:{}/{} item:{}/{}".format(e, epoch_per_run, b, batch_per_loader, i,
+                                                                               item_per_batch), end="")
+            print("\rtrain: epoch:{}/{} batch:{}/{}".format(e, epoch_per_run, b, batch_per_loader), end="")
+        print("\rtrain: epoch:{}/{}".format(e, epoch_per_run), end="")
+    print("\rtrain: finished")
+
     return network.named_parameters()
 
 
 def test(device: torch.device, network: torch.nn.Module, criterion,
          data_loader: DataLoader) -> torch.tensor:
-    print("test start")
-    loss = 0
-    for batch in data_loader:
-        batch_input, batch_label = batch
-        batch_size = batch_input.shape[0]
-        for i in range(batch_size):
-            with torch.no_grad():
+    batch_per_loader = len(data_loader)
+    item_per_batch = data_loader.batch_size
+    total_loss = 0
+    total_correct = 0
+    with torch.no_grad():
+
+        for b, batch in enumerate(data_loader):
+            batch_input, batch_label = batch  # current batch
+            for i in range(item_per_batch):
                 # read data
                 data_input, data_label = batch_input[i], batch_label[i]
                 data_input, data_label = data_input.to(device), data_label.to(device)
-                # calculate loss
+                # feed
                 output = network(data_input)
-                loss += criterion(output, data_label).item()/batch_size
-            # progress bar
-            if i % int(batch_size / 10) == 0:
-                print("\r{}%".format(i / batch_size * 100), end="")
-    print("\r100%")
-    print("test end")
-    return loss
+                # calculate loss
+                cur_loss = criterion(output, data_label)
+                # calculate fitness
+                total_loss += cur_loss.item()
+                guess_max_val, guess_max_index = output.max(0)
+                label_max_val, label_max_index = data_label.max(0)
+                if guess_max_index == label_max_index:
+                    total_correct += 1
+
+                # progress bar
+                if i % int(item_per_batch / 10) == 0:
+                    print("\rtest: batch:{}/{} item:{}/{}".format(b, batch_per_loader, i, item_per_batch), end="")
+            print("\rtest: batch:{}/{}".format(b, batch_per_loader), end="")
+        print("\rtest: finished")
+    num_turn = batch_per_loader * item_per_batch
+    return total_loss / num_turn, total_correct / num_turn * 100
 
 
 def main():
@@ -116,11 +133,16 @@ def main():
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
     criterion = torch.nn.MSELoss()
 
-    train_loader = DataLoader(dataset=Set("input_data/", 0, 5000, 1000), batch_size=1000, shuffle=True)
-    train(device, net, optimizer, criterion, train_loader)
-    test_loader = DataLoader(dataset=Set("input_data/", 5000, 10000, 1000), batch_size=1000, shuffle=True)
-    loss = test(device, net, criterion, test_loader)
-    print(loss)
+    train_loader = DataLoader(dataset=Set("input_data/", 0, 9000, 5000), batch_size=1000, shuffle=True)
+    test_loader = DataLoader(dataset=Set("input_data/", 9000, 10000, 500), batch_size=100, shuffle=True)
+
+    result = test(device, net, criterion, test_loader)
+    print("result:", result)
+
+    train(device, net, optimizer, criterion, train_loader, 10)
+
+    result = test(device, net, criterion, test_loader)
+    print("result:", result)
 
 
 if __name__ == "__main__":
