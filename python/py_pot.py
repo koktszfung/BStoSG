@@ -39,7 +39,7 @@ class LJCutSPCE(LAMMPSPairPotential):
     def __init__(self):
         super(LJCutSPCE,self).__init__()
         self.units='real'
-        # SPCE oxygen LJ parameters in real units
+        # SPCE oxygen LJ model_save in real units
         eps=0.15535
         sig=3.166
         self.coeff = {'OW'  : {'OW'  : (48.0*eps*sig**12,24.0*eps*sig**6,

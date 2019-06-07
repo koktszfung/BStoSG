@@ -53,14 +53,14 @@ class Net(torch.nn.Module):
 
     def forward(self, x):
         # relu: activation, self.fc(x): pass previous output as input through fc
-        x = torch.nn.functional.relu(self.fc1(x))
-        x = torch.nn.functional.relu(self.fc2(x))
+        x = torch.nn.functional.rrelu(self.fc1(x))
+        x = torch.nn.functional.rrelu(self.fc2(x))
         x = self.fc3(x)  # don't relu output
         return x
 
 
-def train(device: torch.device, network: torch.nn.Module, optimizer, criterion,
-          data_loader: DataLoader, epoch_per_run) -> torch.tensor:
+def train(device: torch.device, network: torch.nn.Module, criterion, optimizer,
+          data_loader: DataLoader, epoch_per_run):
     batch_per_loader = len(data_loader)
     item_per_batch = data_loader.batch_size
     for e in range(epoch_per_run):
@@ -88,17 +88,14 @@ def train(device: torch.device, network: torch.nn.Module, optimizer, criterion,
         print("\rtrain: epoch:{}/{}".format(e, epoch_per_run), end="")
     print("\rtrain: finished")
 
-    return network.named_parameters()
 
-
-def test(device: torch.device, network: torch.nn.Module, criterion,
-         data_loader: DataLoader) -> torch.tensor:
+def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
+                  data_loader: DataLoader) -> tuple:
     batch_per_loader = len(data_loader)
     item_per_batch = data_loader.batch_size
     total_loss = 0
     total_correct = 0
     with torch.no_grad():
-
         for b, batch in enumerate(data_loader):
             batch_input, batch_label = batch  # current batch
             for i in range(item_per_batch):
@@ -125,24 +122,53 @@ def test(device: torch.device, network: torch.nn.Module, criterion,
     return total_loss / num_turn, total_correct / num_turn * 100
 
 
+def test_single(device: torch.device, network: torch.nn.Module, file_path):
+    try:
+        with open(file_path) as file:
+            data_json = json.load(file)
+            data_input_np = np.array(data_json["bands"])  # load bands into nd-array
+            if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
+                raise ValueError
+            data_input_np = data_input_np.flatten().T
+            data_label_np = np.zeros(230).T
+            data_label_np[data_json["number"] - 1] = 100
+            data_input = torch.from_numpy(data_input_np).float().to(device)
+            data_label = torch.from_numpy(data_label_np).float().to(device)
+            output = network(data_input)
+            return data_label.int(), output.int(), (data_label - output).int()
+    except ValueError:
+        print("wrong number of bands")
+        return None
+
+
 def main():
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    net = Net().to(device)
+    net = Net()
+    save_path = ""  # ""state_dict_save/temp.pt"
+    if save_path != "":
+        net.load_state_dict(torch.load(save_path))
+        net.eval()
+    net = net.to(device)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
     criterion = torch.nn.MSELoss()
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    train_loader = DataLoader(dataset=Set("input_data/", 0, 9000, 5000), batch_size=1000, shuffle=True)
-    test_loader = DataLoader(dataset=Set("input_data/", 9000, 10000, 500), batch_size=100, shuffle=True)
+    train_loader = DataLoader(dataset=Set("input_data/", 0, 10000, 5000), batch_size=500, shuffle=True)
+    test_loader = DataLoader(dataset=Set("input_data/", 0, 10000, 1000), batch_size=100, shuffle=True)
 
-    result = test(device, net, criterion, test_loader)
+    result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
-    train(device, net, optimizer, criterion, train_loader, 10)
+    train(device, net, criterion, optimizer, train_loader, 1)
+    torch.save(net.state_dict(), "state_dict_save/temp.pt")
 
-    result = test(device, net, criterion, test_loader)
+    result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
+
+    results = test_single(device, net, "input_data/input_data_30176.json")
+    for result in results:
+        print(result, "\n")
 
 
 if __name__ == "__main__":
