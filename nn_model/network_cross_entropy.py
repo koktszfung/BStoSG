@@ -55,7 +55,7 @@ class Net(torch.nn.Module):
         # rrelu: activation, self.fc(x): pass previous output as input through fc
         x = torch.nn.functional.leaky_relu(self.fc1(x))
         x = torch.nn.functional.leaky_relu(self.fc2(x))
-        x = self.fc3(x)
+        x = torch.nn.functional.leaky_relu(self.fc3(x))
         return x.view(1, 230)
 
 
@@ -108,7 +108,7 @@ def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
                 cur_loss = criterion(output, data_label)
                 # calculate fitness
                 total_loss += cur_loss.item()
-                if torch.max(output, 1)[1] == data_label:
+                if torch.max(output, 1)[1] == data_label:  # torch.max(tensor, axis) -> (value, index)
                     total_correct += 1
 
                 # progress bar
@@ -120,31 +120,49 @@ def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
     return total_loss / num_turn, total_correct/num_turn*100
 
 
-def test_single(device: torch.device, network: torch.nn.Module, file_path):
-    try:
-        with open(file_path) as file:
-            data_json = json.load(file)
-            data_input_np = np.array(data_json["bands"])  # load bands into nd-array
-            if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
-                raise ValueError
+def test_specific(device: torch.device, network: torch.nn.Module, file_path):
+    with torch.no_grad():
+        try:
+            with open(file_path) as file:
+                data_json = json.load(file)
+                data_input_np = np.array(data_json["bands"])  # load bands into nd-array
+                if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
+                    raise ValueError
+                data_input_np = softmax(data_input_np)
+                # data_input_np_max = np.max(np.abs(data_input_np))
+                # data_input_np = data_input_np / data_input_np_max
+                data_input_np = data_input_np.flatten().T
+                data_label_np = data_json["number"] - 1
 
-            data_input_np = data_input_np.flatten().T
-            data_label_np = data_json["number"] - 1
+                data_input = torch.from_numpy(data_input_np).float().to(device)
+                output = network(data_input)
+                softmax_opt = torch.nn.Softmax(1)
+                return data_label_np, (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+        except ValueError:
+            print("wrong number of bands")
+            return None
 
-            data_input = torch.from_numpy(data_input_np).float().to(device)
-            output = network(data_input)
-            softmax_opt = torch.nn.Softmax(1)
-            return data_label_np, (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
-    except ValueError:
-        print("wrong number of bands")
-        return None
+
+def test_single(device: torch.device, network: torch.nn.Module):
+    with torch.no_grad():
+        data_loader = DataLoader(dataset=Set("new_input_data/", 9000, 11018, 1))
+        data_input, data_label = data_loader.dataset.__getitem__(0)
+        data_input, data_label = data_input.to(device), data_label.to(device)
+        output = network(data_input)
+        softmax_opt = torch.nn.Softmax(1)
+        return data_label.item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
 
 
 def main():
+    np.set_printoptions(precision=2)
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net()
     state_dict_path = ""
+    model_path = ""
+    if model_path != "":
+        net.load(model_path)
+        net.eval()
     if state_dict_path != "":
         net.load_state_dict(torch.load(state_dict_path))
         net.eval()
@@ -160,14 +178,17 @@ def main():
     print("result:", result)
 
     train(device, net, criterion, optimizer, train_loader, 5)
+    torch.save(net, "model_save/temp.pt")
     torch.save(net.state_dict(), "state_dict_save/temp.pt")
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
-    results = test_single(device, net, "input_data/input_data_13139.json")
-    for result in results:
-        print(result, "\n")
+    results = test_specific(device, net, "input_data/input_data_13139.json")
+    print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
+
+    results = test_single(device, net)
+    print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
 
 
 def test():
