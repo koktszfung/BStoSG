@@ -25,8 +25,8 @@ class Set(Dataset):
                     if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
                         continue
                     # data_input_np = softmax(data_input_np, 1)
-                    # data_input_np_max = np.max(np.abs(data_input_np)+1e-10, 0)
-                    # data_input_np /= data_input_np_max
+                    data_input_np_max = np.max(np.abs(data_input_np)+1e-10, 1)
+                    data_input_np = data_input_np / data_input_np_max.reshape(-1, 1)
                     data_input_np = data_input_np.flatten().T
                     data_label_np = np.array([data_json["number"] - 1])
                 self.data_input.append(torch.from_numpy(data_input_np).float())

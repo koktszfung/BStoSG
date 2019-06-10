@@ -1,3 +1,4 @@
-nn_model/input_data/*
 .idea/*
+*/input_data/*
 */data/*
+*/new_input_data/*
