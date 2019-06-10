@@ -18,9 +18,10 @@ def plot_band_json(name):
 def plot_spacegroup(name):
     spacegroup = np.loadtxt(name)
     plt.bar(spacegroup[:, 0], spacegroup[:, 1])
+    print(spacegroup.shape)
     plt.show()
 
 
 if __name__ == "__main__":
-    plot_band_json("data/bands_res.json")
+    # plot_band_json("data/bands_res.json")
     plot_spacegroup("data/spacegroup_weights.txt")
