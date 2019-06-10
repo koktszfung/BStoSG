@@ -6,6 +6,7 @@ from torch.utils.data import Dataset, DataLoader
 import os
 import json
 import numpy as np
+from scipy.special import softmax
 
 
 class Set(Dataset):
@@ -23,6 +24,9 @@ class Set(Dataset):
                     data_input_np = np.array(data_json["bands"])  # load bands into nd-array
                     if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
                         continue
+                    # data_input_np = softmax(data_input_np, 1)
+                    # data_input_np_max = np.max(np.abs(data_input_np)+1e-10, 0)
+                    # data_input_np /= data_input_np_max
                     data_input_np = data_input_np.flatten().T
                     data_label_np = np.array([data_json["number"] - 1])
                 self.data_input.append(torch.from_numpy(data_input_np).float())
@@ -86,7 +90,7 @@ def train(device: torch.device, network: torch.nn.Module, criterion, optimizer,
 
 
 def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
-                  data_loader: DataLoader) -> float:
+                  data_loader: DataLoader):
     batch_per_loader = len(data_loader)
     item_per_batch = data_loader.batch_size
     total_loss = 0
@@ -129,8 +133,8 @@ def test_single(device: torch.device, network: torch.nn.Module, file_path):
 
             data_input = torch.from_numpy(data_input_np).float().to(device)
             output = network(data_input)
-            m = torch.nn.Softmax(1)
-            return data_label_np, (torch.round(m(output)*100)/100).reshape(-1, 10)
+            softmax_opt = torch.nn.Softmax(1)
+            return data_label_np, (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
     except ValueError:
         print("wrong number of bands")
         return None
@@ -140,23 +144,23 @@ def main():
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net()
-    state_dict_path = "state_dict_save/ce23000706.pt"
+    state_dict_path = ""
     if state_dict_path != "":
         net.load_state_dict(torch.load(state_dict_path))
         net.eval()
     net = net.to(device)
 
     criterion = torch.nn.CrossEntropyLoss()
-    # optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
-    #
-    # train_loader = DataLoader(dataset=Set("input_data/", 0, 9000, 5000), batch_size=1000, shuffle=True)
-    test_loader = DataLoader(dataset=Set("input_data/", 9000, 10000, 500), batch_size=100, shuffle=True)
-    #
-    # result = test_multiple(device, net, criterion, test_loader)
-    # print("result:", result)
-    #
-    # train(device, net, criterion, optimizer, train_loader, 5)
-    # torch.save(net.state_dict(), "state_dict_save/temp.pt")
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
+
+    train_loader = DataLoader(dataset=Set("new_input_data/", 0, 9000, 5000), batch_size=1250, shuffle=True)
+    test_loader = DataLoader(dataset=Set("new_input_data/", 9000, 11018, 500), batch_size=100, shuffle=True)
+
+    result = test_multiple(device, net, criterion, test_loader)
+    print("result:", result)
+
+    train(device, net, criterion, optimizer, train_loader, 5)
+    torch.save(net.state_dict(), "state_dict_save/temp.pt")
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
@@ -167,11 +171,10 @@ def main():
 
 
 def test():
-    criterion = torch.nn.CrossEntropyLoss()
-    output = torch.Tensor([[0.1, 0.6, 0.2]])
-    label = torch.LongTensor([0])
-    loss = criterion(output, label)
-    print(loss)
+    arr = np.array([[1, 2, 3], [4, 5, 6]])
+    arr_max = np.amax(arr, 0)
+    print(arr_max)
+    print(arr/arr_max)
 
 
 if __name__ == "__main__":
