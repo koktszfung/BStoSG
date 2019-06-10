@@ -1,7 +1,7 @@
 # Network Setting Result
 ### old setting
-- reduce input information by replacing energy degeneracies by that degree of degeneracies
-![old input data](old_input_data)
+- reduce input information by replacing energy degeneracies by that degree of degeneracies \
+![old input data](old_input_data.PNG)
 
 ### new setting
 - keep the original energy level \
