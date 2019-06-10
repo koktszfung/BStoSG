@@ -16,16 +16,11 @@ def plot_band_json(name):
 
 
 def plot_spacegroup(name):
-    with open(name, "r") as file:
-        x = np.arange(230)
-        y = np.zeros(230)
-        for i, line in enumerate(file):
-            y[i] = line.split()[1]
-        plt.bar(x, y)
-        plt.show()
+    spacegroup = np.loadtxt(name)
+    plt.bar(spacegroup[:, 0], spacegroup[:, 1])
+    plt.show()
 
 
-# id num_bands num_sites space_group
 if __name__ == "__main__":
     plot_band_json("data/bands_res.json")
-    plot_spacegroup("data/spacegroup_occurence_1-500.txt")
+    plot_spacegroup("data/spacegroup_weights.txt")
