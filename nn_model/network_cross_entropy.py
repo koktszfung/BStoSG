@@ -120,6 +120,16 @@ def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
     return total_loss / num_turn, total_correct/num_turn*100
 
 
+def test_single(device: torch.device, network: torch.nn.Module, data_dir):
+    with torch.no_grad():
+        data_loader = DataLoader(dataset=Set(data_dir, 18000, 21737, 1))
+        data_input, data_label = data_loader.dataset.__getitem__(0)
+        data_input, data_label = data_input.to(device), data_label.to(device)
+        output = network(data_input)
+        softmax_opt = torch.nn.Softmax(1)
+        return data_label.item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+
+
 def test_specific(device: torch.device, network: torch.nn.Module, file_path):
     with torch.no_grad():
         try:
@@ -143,25 +153,16 @@ def test_specific(device: torch.device, network: torch.nn.Module, file_path):
             return None
 
 
-def test_single(device: torch.device, network: torch.nn.Module):
-    with torch.no_grad():
-        data_loader = DataLoader(dataset=Set("new_input_data/", 9000, 11018, 1))
-        data_input, data_label = data_loader.dataset.__getitem__(0)
-        data_input, data_label = data_input.to(device), data_label.to(device)
-        output = network(data_input)
-        softmax_opt = torch.nn.Softmax(1)
-        return data_label.item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
-
-
 def main():
     np.set_printoptions(precision=2)
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net()
-    state_dict_path = ""
     model_path = ""
+    state_dict_path = ""
+
     if model_path != "":
-        net.load(model_path)
+        torch.load(model_path)
         net.eval()
     if state_dict_path != "":
         net.load_state_dict(torch.load(state_dict_path))
@@ -171,34 +172,26 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    train_loader = DataLoader(dataset=Set("new_input_data/", 0, 9000, 5000), batch_size=1250, shuffle=True)
-    test_loader = DataLoader(dataset=Set("new_input_data/", 9000, 11018, 500), batch_size=100, shuffle=True)
+    train_loader = DataLoader(dataset=Set("data/new_input_data_2/", 0, 18000, 6250), batch_size=1250, shuffle=True)
+    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 18000, 21737, 500), batch_size=100, shuffle=True)
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
-    train(device, net, criterion, optimizer, train_loader, 5)
+    train(device, net, criterion, optimizer, train_loader, 8)
     torch.save(net, "model_save/temp.pt")
     torch.save(net.state_dict(), "state_dict_save/temp.pt")
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
-    results = test_specific(device, net, "input_data/input_data_13139.json")
+    results = test_specific(device, net, "data/new_input_data_2/new_input_data_13139.json")
     print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
 
-    results = test_single(device, net)
+    results = test_single(device, net, "data/new_input_data_2/")
     print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
-
-
-def test():
-    arr = np.array([[1, 2, 3], [4, 5, 6]])
-    arr_max = np.amax(arr, 0)
-    print(arr_max)
-    print(arr/arr_max)
 
 
 if __name__ == "__main__":
     main()
-    # test()
     torch.cuda.empty_cache()
