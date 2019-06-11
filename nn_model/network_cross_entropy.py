@@ -10,29 +10,27 @@ from scipy.special import softmax
 
 
 class Set(Dataset):
-    def __init__(self, data_dir, search_start, search_end, num_data):  # length: number of data
+    def __init__(self, data_dir, num_data, start=0, end=20045):
         self.len = num_data
         self.data_input = []
         self.data_label = []
-        for subdir, dirs, files in os.walk(data_dir):  # search through the directory
-            search_size = abs(search_end - search_start)  # separate input_data into test set and train set
-            order = np.random.permutation(search_size) - 1 + search_start  # randomly add to set without repetition
-            for i in range(search_size):  # iterate through order
-                file_name = files[order[i]]
-                with open(data_dir + file_name) as file:
-                    data_json = json.load(file)
-                    data_input_np = np.array(data_json["bands"])  # load bands into nd-array
-                    if data_input_np.shape[0] != 30:  # accept only data with 30 energy bands
-                        continue
-                    data_input_np = softmax(data_input_np)
-                    # data_input_np_max = np.max(np.abs(data_input_np))
-                    # data_input_np = data_input_np / data_input_np_max
-                    data_input_np = data_input_np.flatten().T
-                    data_label_np = np.array([data_json["number"] - 1])
-                self.data_input.append(torch.from_numpy(data_input_np).float())
-                self.data_label.append(torch.from_numpy(data_label_np).long())
-                if len(self.data_input) >= num_data:
-                    break
+        search_size = abs(end - start)  # separate input_data into test set and train set
+        order = np.random.permutation(search_size) - 1 + start  # randomly add to set without repetition
+        file_name_arr = np.loadtxt("valid_name_list.txt", "U30")
+        for i in range(search_size):
+            file_name = file_name_arr[order[i]]
+            with open(data_dir + file_name, "r") as file:
+                data_json = json.load(file)
+                data_input_np = np.array(data_json["bands"])  # load bands into nd-array.
+                data_input_np = softmax(data_input_np)
+                # data_input_np_max = np.max(np.abs(data_input_np))
+                # data_input_np = data_input_np / data_input_np_max
+                data_input_np = data_input_np.flatten().T
+                data_label_np = np.array([data_json["number"] - 1])
+            self.data_input.append(torch.from_numpy(data_input_np).float())
+            self.data_label.append(torch.from_numpy(data_label_np).long())
+            if len(self.data_input) >= num_data:
+                break
 
     def __len__(self):
         return self.len
@@ -120,14 +118,13 @@ def test_multiple(device: torch.device, network: torch.nn.Module, criterion,
     return total_loss / num_turn, total_correct/num_turn*100
 
 
-def test_single(device: torch.device, network: torch.nn.Module, data_dir):
+def test_show_result(device: torch.device, network: torch.nn.Module, data_loader: DataLoader):
     with torch.no_grad():
-        data_loader = DataLoader(dataset=Set(data_dir, 18000, 21737, 1))
         data_input, data_label = data_loader.dataset.__getitem__(0)
         data_input, data_label = data_input.to(device), data_label.to(device)
         output = network(data_input)
         softmax_opt = torch.nn.Softmax(1)
-        return data_label.item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+        return data_label.item(), torch.max(output, 1)[1].item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
 
 
 def test_specific(device: torch.device, network: torch.nn.Module, file_path):
@@ -147,7 +144,7 @@ def test_specific(device: torch.device, network: torch.nn.Module, file_path):
                 data_input = torch.from_numpy(data_input_np).float().to(device)
                 output = network(data_input)
                 softmax_opt = torch.nn.Softmax(1)
-                return data_label_np, (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+                return data_label_np, torch.max(output, 1)[1].item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
         except ValueError:
             print("wrong number of bands")
             return None
@@ -158,8 +155,8 @@ def main():
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
     net = Net()
-    model_path = ""
-    state_dict_path = ""
+    model_path = ""  # "model_save/06102327_ce_softmax_all.pt"
+    state_dict_path = ""  # "state_dict_save/06102327_ce_softmax_all.pt"
 
     if model_path != "":
         torch.load(model_path)
@@ -172,8 +169,8 @@ def main():
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    train_loader = DataLoader(dataset=Set("data/new_input_data_2/", 0, 18000, 6250), batch_size=1250, shuffle=True)
-    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 18000, 21737, 500), batch_size=100, shuffle=True)
+    train_loader = DataLoader(dataset=Set("data/new_input_data_2/", 5000, end=14000), batch_size=1250, shuffle=True)
+    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 3000, start=14000), batch_size=100, shuffle=True)
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
@@ -186,10 +183,12 @@ def main():
     print("result:", result)
 
     results = test_specific(device, net, "data/new_input_data_2/new_input_data_13139.json")
-    print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
+    print("guess:{} index:{}".format(results[1], results[0]))
 
-    results = test_single(device, net, "data/new_input_data_2/")
-    print("index:{}\nprob:{}".format(results[0], results[1]), "\n")
+    for i in range(10):
+        test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 1, start=14000), shuffle=True)
+        results = test_show_result(device, net, test_loader)
+        print("guess:{} index:{}".format(results[1], results[0]))
 
 
 if __name__ == "__main__":
