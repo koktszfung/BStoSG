@@ -123,8 +123,7 @@ def test_show_result(device: torch.device, network: torch.nn.Module, data_loader
         data_input, data_label = data_loader.dataset.__getitem__(0)
         data_input, data_label = data_input.to(device), data_label.to(device)
         output = network(data_input)
-        softmax_opt = torch.nn.Softmax(1)
-        return data_label.item(), torch.max(output, 1)[1].item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+        return data_label.item(), torch.max(output, 1)[1].item(), (torch.round(output*100)/100).reshape(-1, 10)
 
 
 def test_specific(device: torch.device, network: torch.nn.Module, file_path):
@@ -143,8 +142,7 @@ def test_specific(device: torch.device, network: torch.nn.Module, file_path):
 
                 data_input = torch.from_numpy(data_input_np).float().to(device)
                 output = network(data_input)
-                softmax_opt = torch.nn.Softmax(1)
-                return data_label_np, torch.max(output, 1)[1].item(), (torch.round(softmax_opt(output)*100)/100).reshape(-1, 10)
+                return data_label_np, torch.max(output, 1)[1].item(), (torch.round(output*100)/100).reshape(-1, 10)
         except ValueError:
             print("wrong number of bands")
             return None
@@ -170,7 +168,7 @@ def main():
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
     train_loader = DataLoader(dataset=Set("data/new_input_data_2/", 5000, end=14000), batch_size=1250, shuffle=True)
-    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 3000, start=14000), batch_size=100, shuffle=True)
+    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 6000, start=14000), batch_size=500, shuffle=True)
 
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
