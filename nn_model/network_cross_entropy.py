@@ -10,13 +10,13 @@ from scipy.special import softmax
 
 
 class Set(Dataset):
-    def __init__(self, data_dir, num_data, start=0, end=20045):
+    def __init__(self, data_dir, num_data, start=0, end=20040):
         self.len = num_data
         self.data_input = []
         self.data_label = []
         search_size = abs(end - start)  # separate input_data into test set and train set
         order = np.random.permutation(search_size) - 1 + start  # randomly add to set without repetition
-        file_name_arr = np.loadtxt("valid_name_list.txt", "U30")
+        file_name_arr = np.loadtxt("data/valid_name_list.txt", "U30")
         for i in range(search_size):
             file_name = file_name_arr[order[i]]
             with open(data_dir + file_name, "r") as file:
@@ -54,6 +54,8 @@ class Net(torch.nn.Module):
         x = torch.nn.functional.leaky_relu(self.fc1(x))
         x = torch.nn.functional.leaky_relu(self.fc2(x))
         x = torch.nn.functional.leaky_relu(self.fc3(x))
+        # softmax_opt = torch.nn.Softmax(1)
+        # return softmax_opt(x.view(1, 230))
         return x.view(1, 230)
 
 
@@ -164,12 +166,14 @@ def main():
         net.eval()
     net = net.to(device)
 
+    # data = torch.randn(1, 360).to(device)
+    # print(net(data))
+
     criterion = torch.nn.CrossEntropyLoss()
     optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
 
-    train_loader = DataLoader(dataset=Set("data/new_input_data_2/", 5000, end=14000), batch_size=1250, shuffle=True)
-    test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 6000, start=14000), batch_size=500, shuffle=True)
-
+    train_loader = DataLoader(dataset=Set("data/new_input_data_3/", 5000, end=14000), batch_size=1250, shuffle=True)
+    test_loader = DataLoader(dataset=Set("data/new_input_data_3/", 1000, start=14000), batch_size=100, shuffle=True)
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
@@ -180,11 +184,11 @@ def main():
     result = test_multiple(device, net, criterion, test_loader)
     print("result:", result)
 
-    results = test_specific(device, net, "data/new_input_data_2/new_input_data_13139.json")
+    results = test_specific(device, net, "data/new_input_data_3/new_input_data_13139.json")
     print("guess:{} index:{}".format(results[1], results[0]))
 
     for i in range(10):
-        test_loader = DataLoader(dataset=Set("data/new_input_data_2/", 1, start=14000), shuffle=True)
+        test_loader = DataLoader(dataset=Set("data/new_input_data_3/", 1, start=14000), shuffle=True)
         results = test_show_result(device, net, test_loader)
         print("guess:{} index:{}".format(results[1], results[0]))
 
