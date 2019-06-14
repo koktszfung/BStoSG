@@ -1,0 +1,36 @@
+end-lrelu
+	lr:0.0096 optim:sgd val loss:0.0244
+end-softmax
+	lr:0.0034 optim:adam val loss:0.0909
+fc
+	lr:0.0039 optim:sgd val loss:999999
+start-ratio-0
+	lr:0.0073 optim:adam val loss:999999
+start-ratio-0_end-lrelu
+	lr:0.0071 optim:adam val loss:999999
+start-ratio-0_end-softmax
+	lr:0.0076 optim:sgd val loss:999999
+start-ratio-1
+	lr:0.0064 optim:sgd val loss:0.0295
+start-ratio-1_end-lrelu
+	lr:0.0049 optim:adam val loss:0.0254
+start-ratio-1_end-softmax
+	lr:0.0079 optim:adam val loss:0.0933
+start-ratio
+	lr:0.0017 optim:sgd val loss:0.0292
+start-ratio_end-lrelu
+	lr:0.0026 optim:sgd val loss:0.0221
+start-ratio_end-softmax
+	lr:0.0098 optim:adam val loss:0.1022
+start-softman
+	lr:0.0038 optim:sgd val loss:0.0451
+start-softmax-0
+	lr:0.0027 optim:sgd val loss:0.0237
+start-softmax-0_end-lrelu
+	lr:0.003 optim:sgd val loss:0.0254
+start-softmax-0_end-softmax
+	lr:0.0025 optim:sgd val loss:0.0904
+start-softmax_end-lrelu
+	lr:0.0044 optim:sgd val loss:0.0363
+start-softmax_end-softmax
+	lr:0.0036 optim:sgd val loss:0.0854
