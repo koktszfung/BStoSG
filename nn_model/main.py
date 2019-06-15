@@ -1,34 +1,11 @@
 import torch
 import torch.nn
 import torch.nn.functional
-import torch.optim.adam
-from torch.utils.data import Dataset, DataLoader
-import os
-import json
-import math
 import numpy as np
-from scipy.special import softmax
-from my_data_loader import get_train_valid_loader
 
-
-class Net(torch.nn.Module):
-    """
-    default function: __init__, forward, backward, backward is auto generated
-    """
-    def __init__(self):
-        super(Net, self).__init__()
-        self.fc1 = torch.nn.Linear(360, 100)
-        self.fc2 = torch.nn.Linear(100, 100)
-        self.fc3 = torch.nn.Linear(100, 230)
-
-    def forward(self, x):
-        # rrelu: activation, self.fc(x): pass previous output as input through fc
-        x = torch.nn.functional.leaky_relu(self.fc1(x))
-        x = torch.nn.functional.leaky_relu(self.fc2(x))
-        x = torch.nn.functional.leaky_relu(self.fc3(x))
-        # softmax_opt = torch.nn.Softmax(1)
-        # return softmax_opt(x.view(1, 230))
-        return x.view(1, 230)
+from model import get_base_model
+from data_loader import get_train_valid_loader
+from filter_data import create_list_file
 
 
 def train_one_epoch(device, model, optimizer, criterion, train_loader):
@@ -48,7 +25,8 @@ def train_one_epoch(device, model, optimizer, criterion, train_loader):
             loss.backward()
             optimizer.step()
             loss_epoch = loss.item()
-    return loss_epoch
+        print("\rtrain batch:{}/{}".format(b, len(train_loader)), end="")
+    return round(loss_epoch, 4)
 
 
 def validate_one_epoch(device, model, criterion, valid_loader):
@@ -67,46 +45,53 @@ def validate_one_epoch(device, model, criterion, valid_loader):
 
             if torch.max(output, 1)[1] == data_label:
                 num_correct += 1
+        print("\rvalid batch:{}/{}".format(b, len(valid_loader)), end="")
 
     val_loss /= num_valid
     num_correct /= num_valid
-    return val_loss, num_correct
+    return round(val_loss, 4), round(num_correct*100, 4)
 
 
 def main():
     np.set_printoptions(precision=2)
     # setup
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-    net = Net()
+    # net = Net()
+    model = get_base_model()
     model_path = ""  # "model_save/06102327_ce_softmax_all.pt"
     state_dict_path = ""  # "state_dict_save/06102327_ce_softmax_all.pt"
 
     if model_path != "":
         torch.load(model_path)
-        net.eval()
+        model.eval()
     if state_dict_path != "":
-        net.load_state_dict(torch.load(state_dict_path))
-        net.eval()
-    net = net.to(device)
+        model.load_state_dict(torch.load(state_dict_path))
+        model.eval()
+    net = model.to(device)
 
-    # optimizer = torch.optim.Adam(net.parameters(), lr=0.01)
-    optimizer = torch.optim.SGD(net.parameters(), lr=0.044)
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.00526)
+    # optimizer = torch.optim.SGD(net.parameters(), lr=0.00756)
 
     criterion = torch.nn.CrossEntropyLoss()
 
-    train_loader, valid_loader = get_train_valid_loader("data/new_input_data_3/", 500, 0.3)
+    create_list_file("data/new_input_data_5/", 30)
+    train_loader, valid_loader = get_train_valid_loader("data/valid_name_list.txt", 32, 0.1)
 
     result = validate_one_epoch(device, net, criterion, valid_loader)
-    print("test: loss:{} num:{}".format(*result))
+    print("\rvalid loss:{} accuracy:{}%".format(*result))
 
     for epoch in range(4):
         result = train_one_epoch(device, net, optimizer, criterion, train_loader)
-        print("train: epoch:{} loss:{}".format(epoch, result))
+        print("\rtrain epoch:{} loss:{}".format(epoch, result))
 
     result = validate_one_epoch(device, net, criterion, valid_loader)
-    print("test: loss:{} num:{}".format(*result))
+    print("\rvalid loss:{} accuracy:{}%".format(*result))
 
 
 if __name__ == "__main__":
     main()
     torch.cuda.empty_cache()
+    import winsound
+    duration = 500  # milliseconds
+    freq = 200  # Hz
+    winsound.Beep(freq, duration)
