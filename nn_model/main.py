@@ -69,7 +69,7 @@ def main():
         model.eval()
     net = model.to(device)
 
-    optimizer = torch.optim.Adam(net.parameters(), lr=0.00526)
+    optimizer = torch.optim.Adam(net.parameters(), lr=0.00654)
     # optimizer = torch.optim.SGD(net.parameters(), lr=0.00756)
 
     criterion = torch.nn.CrossEntropyLoss()
