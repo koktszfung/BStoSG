@@ -1,8 +1,9 @@
 import numpy
 from pymatgen.core.lattice import Lattice
 from pymatgen.core.structure import IStructure
+from pymatgen.symmetry.bandstructure import HighSymmKpath
 from pymatgen.io.vasp.inputs import Incar, Poscar, Potcar, Kpoints, VaspInput
-from typing import List, Dict, Union
+from typing import List, Union
 
 
 def struct_from_sgnum(sgnum: int,
@@ -23,13 +24,13 @@ def struct_from_sgnum(sgnum: int,
     structure = IStructure.from_spacegroup(
         sgnum, lattice, species, init_coords
     )
-    return structure
+    return structure.get_primitive_structure()
 
 
 def gen_vasp_input(structure: IStructure):
     vasp_input = VaspInput(
         Incar.from_file("INCAR"),
-        Kpoints.automatic_gamma_density(structure, 1),
+        Kpoints.automatic_linemode(10, HighSymmKpath(structure)),
         Poscar(structure),
         Potcar.from_file("POTCAR")
     )
