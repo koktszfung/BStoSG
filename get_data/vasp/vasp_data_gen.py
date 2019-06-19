@@ -29,8 +29,8 @@ def dump_poscar(sgnum: int,
         file.write("{:.4f}\n".format(scaling_factor))
         for vector in lattice_vectors:
             file.write("{:.4f} {:.4f} {:.4f}\n".format(*vector))
-        file.write(("{} "*len(species_dict)).format(*species_dict.keys())+"\n")
-        file.write(("{:.0f} "*len(species_dict)).format(*species_dict.values())+"\n")
+        file.write(("{} " * len(species_dict)).format(*species_dict.keys()) + "\n")
+        file.write(("{:.0f} " * len(species_dict)).format(*species_dict.values()) + "\n")
         file.write("direct\n")
         for coord in frac_coords:
             file.write("{:.4f} {:.4f} {:.4f}\n".format(*coord))
@@ -38,9 +38,9 @@ def dump_poscar(sgnum: int,
 
 if __name__ == "__main__":
     dump_poscar(
-        sgnum=14,
+        sgnum=i,
         init_coords=numpy.random.rand(1, 3),
         scaling_factor=4,
-        lattice_vectors=None,
+        lattice_vectors=[[0, 1, 1], [1, 0, 1], [1, 1, 0]],
         species_dict=None
     )
