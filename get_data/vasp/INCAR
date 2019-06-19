@@ -1,0 +1,11 @@
+EDIFF = 1e-05
+EDIFFG = 0.02
+ENCUT = 300
+IBRION = 2
+ICHARG = 2
+ISIF = 3
+ISMEAR = 0
+ISTART = 0
+NSW = 20
+SIGMA = 0.1
+System = Diamond si

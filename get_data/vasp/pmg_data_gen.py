@@ -28,12 +28,12 @@ def struct_from_sgnum(sgnum: int,
 
 def gen_vasp_input(structure: IStructure):
     vasp_input = VaspInput(
-        Incar.from_file("../data/INCAR"),
+        Incar.from_file("INCAR"),
         Kpoints.automatic_gamma_density(structure, 1),
         Poscar(structure),
-        Potcar.from_file("../data/POTCAR")
+        Potcar.from_file("POTCAR")
     )
-    vasp_input.write_input("../data/")
+    vasp_input.write_input(".")
 
 
 if __name__ == "__main__":
