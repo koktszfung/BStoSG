@@ -1,7 +1,7 @@
 import os
 import numpy
 from gen_vasp_input import struct_from_sgnum, write_vasp_input
-from gen_nn_input import write_nn_input_label_based
+from gen_nn_input import write_nn_input_label_based, write_nn_input_coord_based
 from plot_vasp_output import plot_dos, plot_bs
 
 
@@ -26,6 +26,15 @@ def gen_bs_from_sgnum(sgnum: int, index: int = None, is_plot: bool = False):
         sgnum=sgnum,
         index=index,
         all_hs_path="all_hs_files/all_hslabels.txt",
+        vasprun_path="vasprun.xml",
+        write_dir="data_upload/label_based/"
+    )
+
+    write_nn_input_coord_based(
+        structure=struct,
+        sgnum=sgnum,
+        index=index,
+        all_hs_path="all_hs_files/all_hspoints.txt",
         vasprun_path="vasprun.xml",
         write_dir="data_upload/coord_based/"
     )
