@@ -58,7 +58,7 @@ def write_nn_input_coord_based(structure: IStructure,
     all_bands = numpy.array(list(all_hspoints_to_bands.values())).T.tolist()  # (bands, all_hspoints)
 
     input_dict = {"number": sgnum, "bands": all_bands}
-    file_path = write_dir + "theo_input_data_{}.json".format(index)
+    file_path = write_dir + "theo_input_data_{}_{}.json".format(sgnum, index)
     with open(file_path, "w") as file:
         json.dump(input_dict, file, indent=4)
 
@@ -94,7 +94,7 @@ def write_nn_input_label_based(sgnum: int,
     all_bands = numpy.array(list(all_hslabels_to_bands.values())).T.tolist()  # (bands, all_hslabels)
 
     input_dict = {"number": sgnum, "bands": all_bands}
-    file_path = write_dir + "theo_input_data_{}.json".format(index)
+    file_path = write_dir + "theo_input_data_{}_{}.json".format(sgnum, index)
     with open(file_path, "w") as file:
         json.dump(input_dict, file, indent=4)
 
