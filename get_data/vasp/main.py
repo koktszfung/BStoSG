@@ -1,11 +1,11 @@
 import os
 import numpy
 from gen_vasp_input import struct_from_sgnum, write_vasp_input
+from gen_nn_input import write_nn_input_label_based
 from plot_vasp_output import plot_dos, plot_bs
 
 
 def gen_bs_from_sgnum(sgnum: int, index: int = None, is_plot: bool = False):
-
     struct = struct_from_sgnum(
         sgnum=sgnum,
         scaling_factor=4.7,
@@ -22,9 +22,13 @@ def gen_bs_from_sgnum(sgnum: int, index: int = None, is_plot: bool = False):
 
     # os.system("mpiexec -n 4 vasp-544-s > vasp.out")
 
-    if index:
-        print(index, end=" ")
-        pass
+    write_nn_input_label_based(
+        sgnum=sgnum,
+        index=index,
+        all_hs_path="all_hs_files/all_hslabels.txt",
+        vasprun_path="vasprun.xml",
+        write_dir="data_upload/coord_based/"
+    )
 
     if is_plot:
         plot_dos("vasprun.xml")
@@ -33,5 +37,10 @@ def gen_bs_from_sgnum(sgnum: int, index: int = None, is_plot: bool = False):
 
 if __name__ == '__main__':
     print("main start")
-    gen_bs_from_sgnum(1)
+    for i in range(3):
+        gen_bs_from_sgnum(
+            sgnum=1,
+            index=i,
+            is_plot=False,
+        )
     print("main end")

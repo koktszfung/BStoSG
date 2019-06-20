@@ -24,7 +24,7 @@ def write_nn_input_coord_based(structure: IStructure,
                                index: int,
                                all_hs_path: str,
                                vasprun_path: str,
-                               write_dir: str,):
+                               write_dir: str, ):
     bsvasprun = BSVasprun(vasprun_path)
 
     kpoints = [tuple(vector) for vector in bsvasprun.actual_kpoints]  # (kpoints, 1)
@@ -67,7 +67,7 @@ def write_nn_input_label_based(sgnum: int,
                                index: int,
                                all_hs_path: str,
                                vasprun_path: str,
-                               write_dir: str,):
+                               write_dir: str, ):
     bsvasprun = BSVasprun(vasprun_path)
 
     bandstructure = bsvasprun.get_band_structure(kpoints_filename="KPOINTS", line_mode=True)
