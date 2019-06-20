@@ -1,5 +1,5 @@
 Line_mode KPOINTS file
-10
+20
 Line_mode
 Reciprocal
 0.0 0.0 0.0 ! \Gamma

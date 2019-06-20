@@ -7,12 +7,12 @@ from typing import List, Union
 
 
 def struct_from_sgnum(sgnum: int,
-                      init_coords: Union[List[List[float]], numpy.ndarray] = None,
                       scaling_factor: float = 1,
-                      lattice_vectors: Union[List[float], List[List[float]]] = None,
+                      lattice_vectors: Union[List[List[float]], numpy.ndarray] = None,
+                      init_coords: Union[List[List[float]], numpy.ndarray] = None,
                       species: List[str] = None) -> IStructure:
     if init_coords is None:
-        init_coords = [[0, 0, 0], [0, 0, 0.5]]
+        init_coords = [[0, 0, 0]]
     if lattice_vectors is None:
         lattice_vectors = [[0, 0, 1], [0, 1, 0], [1, 0, 0]]
     if species is None:
@@ -27,16 +27,27 @@ def struct_from_sgnum(sgnum: int,
     return structure.get_primitive_structure()
 
 
-def gen_vasp_input(structure: IStructure):
+def write_vasp_input(structure: IStructure,
+                     kpath_division: int = 20,
+                     write_dir: str = "."):
     vasp_input = VaspInput(
         Incar.from_file("INCAR"),
-        Kpoints.automatic_linemode(10, HighSymmKpath(structure)),
+        Kpoints.automatic_linemode(kpath_division, HighSymmKpath(structure)),
         Poscar(structure),
         Potcar.from_file("POTCAR")
     )
-    vasp_input.write_input(".")
+    vasp_input.write_input(write_dir)
 
 
 if __name__ == "__main__":
-    struct = struct_from_sgnum(22)
-    gen_vasp_input(struct)
+    print("main start")
+    struct = struct_from_sgnum(
+        sgnum=1,
+        scaling_factor=4.7,
+        init_coords=numpy.random.rand(1, 3),
+    )
+    write_vasp_input(
+        structure=struct,
+        kpath_division=20,
+    )
+    print("main end")
