@@ -3,10 +3,11 @@ from pymatgen.io.vasp import BSVasprun
 from pymatgen.core.structure import IStructure
 from pymatgen.symmetry.bandstructure import HighSymmKpath
 from pymatgen.electronic_structure.core import Spin
+import xml
 import json
-from gen_vasp_input import struct_from_sgnum
-
 from fractions import Fraction
+
+from gen_vasp_input import struct_from_sgnum
 
 
 def all_hspoints_from_file(file_path):
@@ -25,7 +26,11 @@ def write_nn_input_coord_based(structure: IStructure,
                                all_hs_path: str,
                                vasprun_path: str,
                                write_dir: str, ):
-    bsvasprun = BSVasprun(vasprun_path)
+    try:
+        bsvasprun = BSVasprun(vasprun_path)
+    except xml.etree.ElementTree.ParseError:
+        print("\tskipped due to parse error")
+        return
 
     kpoints = [tuple(vector) for vector in bsvasprun.actual_kpoints]  # (kpoints, 1)
     bandstructure = bsvasprun.get_band_structure(kpoints_filename="KPOINTS", line_mode=True)
@@ -44,6 +49,7 @@ def write_nn_input_coord_based(structure: IStructure,
         kpoints:
             kpoints_to_bands[kpoints]
         for kpoints in cur_hspoints
+        if kpoints in kpoints_to_bands
     }
 
     # pad zeros to missing high symmetry points (all_hspoints, bands)
@@ -68,7 +74,11 @@ def write_nn_input_label_based(sgnum: int,
                                all_hs_path: str,
                                vasprun_path: str,
                                write_dir: str, ):
-    bsvasprun = BSVasprun(vasprun_path)
+    try:
+        bsvasprun = BSVasprun(vasprun_path)
+    except xml.etree.ElementTree.ParseError:
+        print("\tskipped due to parse error")
+        return
 
     bandstructure = bsvasprun.get_band_structure(kpoints_filename="KPOINTS", line_mode=True)
     bands = bandstructure.bands[Spin.up].T  # (kpoints, bands)
