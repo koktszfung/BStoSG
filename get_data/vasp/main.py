@@ -6,12 +6,10 @@ from plot_vasp_output import plot_dos, plot_bs
 import argparse
 
 
-def vasp(sgnum: int,
-         index: int,
-         node: int = 4):
+def vasp(sgnum: int, index: int,):
     try:
         print("\tvasp {} start".format(index))
-        os.system("mpiexec -n {} vasp-544-s > vasp.out".format(node))
+        os.system("mpiexec -n 4 vasp-544-s > vasp.out")
     except Exception as e:
         print("\tskipped due to {}".format(e))
         return
@@ -20,10 +18,10 @@ def vasp(sgnum: int,
         print("\tvasp end")
 
 
-def gen_bs_from_sgnum(kpath_division: int,
+def gen_bs_from_sgnum(division: int,
                       sgnum: int,
                       index: int = None,
-                      is_plot: bool = False):
+                      plot: bool = False):
     struct = struct_from_sgnum(
         sgnum=sgnum,
         scaling_factor=4,
@@ -34,7 +32,7 @@ def gen_bs_from_sgnum(kpath_division: int,
 
     write_vasp_input(
         structure=struct,
-        kpath_division=kpath_division,
+        kpath_division=division,
         write_dir=".",
     )
 
@@ -57,42 +55,31 @@ def gen_bs_from_sgnum(kpath_division: int,
         write_dir="input_data/coord_based/"
     )
 
-    if is_plot:
+    if plot:
         # plot_dos("vasprun.xml")
         plot_bs("vasprun.xml")
 
 
-def main(kpath_division: int,
+def kwargs_from_file(file_path):
+    with open(file_path) as file:
+        return {line.split()[0]: line.split()[1] for line in file}
+
+
+def main(division: int,
          sgnum: int,
          start: int = 0,
          total: int = 1,
-         is_plot: bool = False):
+         plot: bool = False):
     print("main {} start".format(sgnum))
-    for i in range(start, start + total - 1):
+    for i in range(start, start + total):
         gen_bs_from_sgnum(
-            kpath_division=kpath_division,
+            division=division,
             sgnum=sgnum,
             index=i,
-            is_plot=False,
+            plot=i == start + total - 1 and plot,
         )
-    gen_bs_from_sgnum(
-        kpath_division=kpath_division,
-        sgnum=sgnum,
-        index=start + total - 1,
-        is_plot=is_plot,
-    )
     print("main end")
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description="NN Input Generation")
-    parser.add_argument("-d", "--division", type=int, help="number of kpoints on a kpath")
-    parser.add_argument("-g", "--sgnum", type=int, help="spacegroup number 1~230")
-    parser.add_argument("-s", "--start", type=int, default=0, help="starting index")
-    parser.add_argument("-t", "--total", type=int, default=1, help="total number of runs")
-    parser.add_argument("-p", "--plot", action="store_true", help="plot the last bandstructure")
-
-    args = parser.parse_args()
-
-    main(args.division, args.sgnum, args.start, args.total, args.plot)
-
+    main(**kwargs_from_file("config.txt"))

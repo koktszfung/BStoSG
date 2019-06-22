@@ -28,7 +28,7 @@ def struct_from_sgnum(sgnum: int,
 
 
 def write_vasp_input(structure: IStructure,
-                     kpath_division: int = 20,
+                     kpath_division: int,
                      write_dir: str = "."):
     vasp_input = VaspInput(
         Incar.from_file("INCAR"),

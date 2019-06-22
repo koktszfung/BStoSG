@@ -1,5 +1,5 @@
 .idea/*
-*/data/*
+*data*
 *temp*
-*/__pycache__/*
 *pycache*
+playground.py
