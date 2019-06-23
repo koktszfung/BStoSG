@@ -2,6 +2,7 @@ import json
 import numpy
 
 
+# DONE
 def count_in_guess():
     latnums = numpy.empty(7)
     for i in range(7):
@@ -9,6 +10,7 @@ def count_in_guess():
     return latnums
 
 
+# DONE
 def count_in_theory():
     crystals = numpy.zeros(7)
     for i in range(7):
@@ -16,30 +18,38 @@ def count_in_theory():
             for data_file_path in list_file:
                 with open("../nn_model/" + data_file_path.split()[0], "r") as data_file:
                     data_json = json.load(data_file)
-                    for crystal, sg_margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
-                        if data_json["number"] <= sg_margins:
+
+                    for crystal, margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
+                        if data_json["number"] <= margins:
                             crystals[crystal] += 1
                             break
     return crystals
 
 
-def correct_count():
+def crystal_number(sgnum: int):
+    for crynum, margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
+        if sgnum <= margins:
+            return crynum
+
+
+def correct_in_guess():
     corrects = numpy.zeros(7)
     for i in range(7):
         with open("../nn_model/data/crystal_{}_list.txt".format(i), "r") as list_file:
             for data_file_path in list_file:
                 with open("../nn_model/" + data_file_path.split()[0], "r") as data_file:
                     data_json = json.load(data_file)
-                    for crystal, sg_margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
-                        if data_json["number"] <= sg_margins and crystal == i:
-                            corrects[i] += 1
-                            break
+                    if crystal_number(data_json["number"]) == i:
+                        corrects[i] += 1
+
     return corrects
 
 
-guess = count_in_guess()
-theory = count_in_theory()
-correct = correct_count()
-print(guess.sum())
-print(theory.sum())
-print(correct.sum())
+guess_count = count_in_guess()
+theory_count = count_in_theory()
+guess_correct = correct_in_guess()
+print("guess count: ", guess_count, guess_count.sum())
+print("theory count: ", theory_count, theory_count.sum())
+print("guess correct: ", guess_correct, guess_correct.sum())
+
+print("correct percentage: ", (1 - (guess_count - guess_correct).sum()/guess_count.sum())*100)
