@@ -18,10 +18,10 @@ class Set(Dataset):
                 data_input_np = np.array(data_json["bands"])
                 data_input_np = data_input_np.flatten().T
 
-                bravais_margins = [2, 15, 74, 142, 167, 194, 230]
-                for lattice, margin in enumerate(bravais_margins):
+                crystal_margins = [2, 15, 74, 142, 167, 194, 230]
+                for crystal, margin in enumerate(crystal_margins):
                     if data_json["number"] <= margin:
-                        data_label_np = np.array([lattice])
+                        data_label_np = np.array([crystal])
                         break
             self.data_input.append(torch.from_numpy(data_input_np).float())
             self.data_label.append(torch.from_numpy(data_label_np).long())

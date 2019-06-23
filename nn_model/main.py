@@ -4,8 +4,8 @@ import torch.nn.functional
 import numpy as np
 import json
 
-from model_lattice import get_base_model
-from data_loader_lattice import get_train_valid_loader
+from model_crystal import get_base_model
+from data_loader_crystal import get_train_valid_loader
 from filter_data import create_valid_list_files
 
 
@@ -53,10 +53,10 @@ def validate_one_epoch(device, model, criterion, valid_loader):
     return round(val_loss, 4), round(num_correct*100, 4)
 
 
-def create_lattice_list_files(device, model, list_path):
+def create_crystal_list_files(device, model, list_path):
     file_name_arr = np.loadtxt(list_path, "U50")
     for i in range(7):
-        open("data/lattice_{}_list.txt".format(i), "w").close()
+        open("data/crystal_{}_list.txt".format(i), "w").close()
     for i in range(file_name_arr.shape[0]):
         file_name = file_name_arr[i]
         with open(file_name, "r") as file:
@@ -65,10 +65,10 @@ def create_lattice_list_files(device, model, list_path):
         data_input_np = data_input_np.flatten().T
         data_input = torch.from_numpy(data_input_np).float()
         output = model(data_input.to(device))
-        guess_lattice = torch.max(output, 0)[1].item()
-        with open("data/lattice_{}_list.txt".format(guess_lattice), "a") as file:
+        guess_crystal = torch.max(output, 0)[1].item()
+        with open("data/crystal_{}_list.txt".format(guess_crystal), "a") as file:
             file.write(file_name + "\n")
-        print("\rcreate lattice file: {}/{}".format(i, file_name_arr.shape[0]), end="")
+        print("\rcreate crystal file: {}/{}".format(i, file_name_arr.shape[0]), end="")
 
 
 def main():
@@ -105,7 +105,7 @@ def main():
         print("\rvalid loss:{} accuracy:{}%".format(*result))
         scheduler.step(epoch)
 
-    create_lattice_list_files(device, model, "data/valid_list.txt")
+    create_crystal_list_files(device, model, "data/valid_list.txt")
 
 
 if __name__ == "__main__":
