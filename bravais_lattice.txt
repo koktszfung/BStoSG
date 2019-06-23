@@ -1,0 +1,8 @@
+range		coount	name
+1 - 2		2		triclinic
+3 - 15		13		monoclinic
+16 - 74		59		orthorhombic
+75 - 142	68		tetragonal
+143 - 167	25		trigonal
+168 - 194	27		hexagonal
+195 - 230	36		cubic

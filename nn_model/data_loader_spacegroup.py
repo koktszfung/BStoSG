@@ -15,11 +15,7 @@ class Set(Dataset):
             file_name = file_name_arr[i]
             with open(file_name, "r") as file:
                 data_json = json.load(file)
-                data_input_np = np.array(data_json["bands"])  # load bands into nd-array.
-
-                # data_input_np_max = np.max(np.abs(data_input_np), 0)
-                # data_input_np = data_input_np / data_input_np_max
-
+                data_input_np = np.array(data_json["bands"])
                 data_input_np = data_input_np.flatten().T
                 data_label_np = np.array([data_json["number"] - 1])
             self.data_input.append(torch.from_numpy(data_input_np).float())
