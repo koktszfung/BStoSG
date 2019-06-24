@@ -17,12 +17,7 @@ class Set(Dataset):
                 data_json = json.load(file)
                 data_input_np = np.array(data_json["bands"])
                 data_input_np = data_input_np.flatten().T
-
-                crystal_margins = [2, 15, 74, 142, 167, 194, 230]
-                for crystal, margin in enumerate(crystal_margins):
-                    if data_json["number"] <= margin:
-                        data_label_np = np.array([crystal])
-                        break
+                data_label_np = np.array([data_json["number"] - 1])
             self.data_input.append(torch.from_numpy(data_input_np).float())
             self.data_label.append(torch.from_numpy(data_label_np).long())
             print("\rload: {}/{}".format(i, self.len), end="")

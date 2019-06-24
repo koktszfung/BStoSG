@@ -19,17 +19,17 @@ def count_in_theory():
                 with open("../nn_model/" + data_file_path.split()[0], "r") as data_file:
                     data_json = json.load(data_file)
 
-                    for crystal, margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
-                        if data_json["number"] <= margins:
-                            crystals[crystal] += 1
+                    for c, margin in enumerate([2, 15, 74, 142, 167, 194, 230]):
+                        if data_json["number"] <= margin:
+                            crystals[c] += 1
                             break
     return crystals
 
 
 def crystal_number(sgnum: int):
-    for crynum, margins in enumerate([2, 15, 74, 142, 167, 194, 230]):
-        if sgnum <= margins:
-            return crynum
+    for c, margin in enumerate([2, 15, 74, 142, 167, 194, 230]):
+        if sgnum <= margin:
+            return c
 
 
 def correct_in_guess():
@@ -53,3 +53,6 @@ print("theory count: ", theory_count, theory_count.sum())
 print("guess correct: ", guess_correct, guess_correct.sum())
 
 print("correct percentage: ", (1 - (guess_count - guess_correct).sum()/guess_count.sum())*100)
+
+print(guess_count - guess_correct)
+print(theory_count - guess_correct)

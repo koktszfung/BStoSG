@@ -6,10 +6,10 @@ import numpy as np
 
 
 class Set(Dataset):
-    def __init__(self, list_dir):
+    def __init__(self, list_path):
         self.data_input = []
         self.data_label = []
-        file_name_arr = np.loadtxt(list_dir, "U50")
+        file_name_arr = np.loadtxt(list_path, "U50")
         self.len = len(file_name_arr)
         for i in range(self.len):
             file_name = file_name_arr[i]
@@ -17,7 +17,10 @@ class Set(Dataset):
                 data_json = json.load(file)
                 data_input_np = np.array(data_json["bands"])
                 data_input_np = data_input_np.flatten().T
-                data_label_np = np.array([data_json["number"] - 1])
+                for crysnum, margin in enumerate([2, 15, 74, 142, 167, 194, 230]):
+                    if data_json["number"] <= margin:
+                        data_label_np = np.array([crysnum])
+                        break
             self.data_input.append(torch.from_numpy(data_input_np).float())
             self.data_label.append(torch.from_numpy(data_label_np).long())
             print("\rload: {}/{}".format(i, self.len), end="")
@@ -30,12 +33,12 @@ class Set(Dataset):
         return self.data_input[index], self.data_label[index]
 
 
-def get_train_valid_loader(list_dir,
+def get_train_valid_loader(list_path,
                            batch_size,
                            valid_size=0.1,
                            shuffle=True):
 
-    dataset = Set(list_dir)
+    dataset = Set(list_path)
 
     # create dataloaders
     num_train = len(dataset)
