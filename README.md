@@ -1,2 +1,5 @@
-# Summer-Intern-2019
-Use this to place extra stuff
+# Note
+
+space group: 1 to 230
+
+crystal system: 1 to 7
