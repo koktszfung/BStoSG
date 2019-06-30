@@ -7,7 +7,7 @@ def train_one_epoch(device, model, optimizer, criterion, train_loader):
     for b, (batch_input, batch_label) in enumerate(train_loader):
         for i in range(len(batch_input)):
             # reset gradient history
-            optimizer.zero_grad()  # zero the gradient buffers
+            optimizer.zero_grad()
             # read data
             data_input, data_label = batch_input[i], batch_label[i]
             data_input, data_label = data_input.to(device), data_label.to(device)

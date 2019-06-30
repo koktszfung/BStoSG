@@ -1,12 +1,6 @@
 import numpy
 
 
-def crystal_number(sgnum: int):
-    for c, margin in enumerate([2, 15, 74, 142, 167, 194, 230]):
-        if sgnum <= margin:
-            return c + 1
-
-
 def total_count(num_group, list_dir, list_format):
     counts = numpy.zeros(num_group).astype(int)
     for i in range(num_group):
@@ -33,7 +27,7 @@ def crystal_stat():
     print("actual count:", actual_total, actual_total.sum())
     print("guess correct:", guess_correct, guess_correct.sum())
 
-    print("correct percentage: ", (1 - (guess_total - guess_correct).sum()/guess_total.sum())*100)
+    print("correct percentage:", (1 - (guess_total - guess_correct).sum()/guess_total.sum())*100)
 
     print("TP:", guess_correct)
     print("TN", numpy.full(7, actual_total.sum()) - guess_total - actual_total + guess_correct)
@@ -49,7 +43,7 @@ def spacegroup_stat():
     print("actual count:", actual_total.sum(), "\n", actual_total)
     print("guess correct:", guess_correct.sum(), "\n", guess_correct)
 
-    print("correct percentage: ", (1 - (guess_total - guess_correct).sum()/guess_total.sum())*100)
+    print("correct percentage:", (1 - (guess_total - guess_correct).sum()/guess_total.sum())*100)
 
     print("TP:\n", guess_correct)
     print("TN\n", numpy.full(230, actual_total.sum()) - guess_total - actual_total + guess_correct)

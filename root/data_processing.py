@@ -3,6 +3,8 @@ import json
 import torch
 import numpy
 
+import crystal_functions
+
 
 def create_valid_list_files(num_bands, in_data_dir, out_list_path):
     print("\tcreate valid list:", end="")
@@ -25,7 +27,7 @@ def create_empty_list_files(out_num_group, out_list_dir, list_format):
 
 def create_actual_spacegroup_list_files(in_list_path, out_list_dir):
     create_empty_list_files(230, out_list_dir, "spacegroup_list_{}.txt")
-    file_paths = numpy.loadtxt(in_list_path, "U70")
+    file_paths = numpy.loadtxt(in_list_path, "U60")
     for i, file_path in enumerate(file_paths):
         with open(file_path, "r") as file:
             data_json = json.load(file)
@@ -37,17 +39,13 @@ def create_actual_spacegroup_list_files(in_list_path, out_list_dir):
 
 
 def create_actual_crystal_list_files(in_list_path, out_list_dir):
-    def crystal_number(s: int):
-        for c, margin in enumerate([2, 15, 74, 142, 167, 194, 230]):
-            if s <= margin:
-                return c + 1
     create_empty_list_files(7, out_list_dir, "crystal_list_{}.txt")
     file_paths = numpy.loadtxt(in_list_path, "U70")
     for i, file_path in enumerate(file_paths):
         with open(file_path, "r") as file:
             data_json = json.load(file)
             sgnum = data_json["number"]
-            crysnum = crystal_number(sgnum)
+            crysnum = crystal_functions.crystal_number(sgnum)
         with open(out_list_dir + "crystal_list_{}.txt".format(crysnum), "a") as file_out:
             file_out.write(file_path + "\n")
         print("\r\tcreate actual list: {}/{}".format(i, len(file_paths)), end="")
@@ -56,7 +54,7 @@ def create_actual_crystal_list_files(in_list_path, out_list_dir):
 
 def create_guess_list_files(device, model, num_group, in_list_path, out_list_dir, list_format):
     create_empty_list_files(num_group, out_list_dir, list_format)
-    file_paths = numpy.loadtxt(in_list_path, "U70")
+    file_paths = numpy.loadtxt(in_list_path, "U60")
     for i, file_path in enumerate(file_paths):
         with open(file_path, "r") as file:
             data_json = json.load(file)
@@ -72,10 +70,9 @@ def create_guess_list_files(device, model, num_group, in_list_path, out_list_dir
 
 
 def append_guess_spacegroup_in_crystal_list_files(device, model, crysnum, in_list_path, out_list_dir):
-    margins = [2, 15, 74, 142, 167, 194, 230]
-    crystal_lower = margins[crysnum - 2] if crysnum > 1 else 0
-
-    file_paths = numpy.loadtxt(in_list_path, "U70")
+    if os.stat(in_list_path).st_size == 0:
+        return
+    file_paths = numpy.loadtxt(in_list_path, "U60")
     for i, file_path in enumerate(file_paths):
         with open(file_path, "r") as file:
             data_json = json.load(file)
@@ -83,7 +80,7 @@ def append_guess_spacegroup_in_crystal_list_files(device, model, crysnum, in_lis
             data_input_np = data_input_np.flatten().T
             data_input = torch.from_numpy(data_input_np).float()
             output = model(data_input.to(device))
-            sgnum = torch.max(output, 0)[1].item() + 1 + crystal_lower  # output: 0~6, crynum: output+1
+            sgnum = torch.max(output, 0)[1].item() + 1 + crystal_functions.spacegroup_index_lower(crysnum)
         with open(out_list_dir + "spacegroup_list_{}.txt".format(sgnum), "a") as file_out:
             file_out.write(file_path + "\n")
         print("\r\tcreate guess list: {}/{}".format(i, len(file_paths)), end="")
