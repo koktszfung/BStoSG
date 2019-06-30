@@ -7,4 +7,4 @@
 *[space group to crystal system table](crystal_system.md)*
 
 ### file layout
-![file layout](file_layout.png)
+![file layout](file_layout.PNG)
