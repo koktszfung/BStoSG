@@ -31,15 +31,10 @@ def validate_one_epoch(device, model, criterion, valid_loader):
             # read data
             data_input, data_label = batch_input[i], batch_label[i]
             data_input, data_label = data_input.to(device), data_label.to(device)
+            # feed
             output = model(data_input).view(1, -1)
-
-            try:
-                val_loss += criterion(output, data_label).item()
-            except:
-                print(model)
-                print(batch_label[i])
-                exit(2)
-
+            # record fitness
+            val_loss += criterion(output, data_label).item()
             if torch.max(output, 1)[1] == data_label:
                 num_correct += 1
         print("\r\tvalid batch:{}/{}".format(b, len(valid_loader)), end="")

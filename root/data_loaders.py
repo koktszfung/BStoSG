@@ -65,7 +65,6 @@ class SetCrys2Sg(Dataset):
         list_path = list_dir + "crystal_list_{}.txt".format(crysnum)
         file_name_arr = numpy.loadtxt(list_path, "U50")
         self.len = len(file_name_arr)
-        # import random
         for i in range(self.len):
             file_name = file_name_arr[i]
             with open(file_name, "r") as file:
@@ -74,15 +73,8 @@ class SetCrys2Sg(Dataset):
                 data_input_np = data_input_np.flatten().T
 
                 margins = [2, 15, 74, 142, 167, 194, 230]
-                # crystal_upper = margins[crysnum - 1]
                 crystal_lower = margins[crysnum - 2] if crysnum > 1 else 0
-                # crystal_size = crystal_upper - crystal_lower
-
                 data_label_val = data_json["number"] - crystal_lower - 1
-
-                # if data_label_val not in range(crystal_size):
-                #     data_label_val = crystal_size
-                #     data_label_val = random.randint(0, crystal_size - 1)
 
                 data_label_np = numpy.array([data_label_val])
             self.data_input.append(torch.from_numpy(data_input_np).float())

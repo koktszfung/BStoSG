@@ -98,7 +98,7 @@ if __name__ == "__main__":
     # data_processing.create_actual_spacegroup_list_files("data/actual/valid_list.txt", "data/actual/")
 
     # generate guess data #
-    main_bs2sg(num_epoch=1, seed=my_seed)
+    # main_bs2sg(num_epoch=10, seed=my_seed)
     # main_bs2crys(num_epoch=10, seed=my_seed)
     # main_crys2sg_all(num_epoch=10, seed=my_seed)
 

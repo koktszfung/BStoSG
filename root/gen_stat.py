@@ -59,5 +59,5 @@ def spacegroup_stat():
 
 if __name__ == '__main__':
     # crystal_stat()
-    spacegroup_stat()
+    # spacegroup_stat()
     pass
