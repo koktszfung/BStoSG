@@ -26,9 +26,9 @@ def correct_count(num_group, guess_list_dir, actual_list_dir, list_format):
 
 
 def crystal_stat():
-    guess_total = total_count(7, "../nn_model/data/guess/", "crystal_list_{}.txt")
-    actual_total = total_count(7, "../nn_model/data/actual/", "crystal_list_{}.txt")
-    guess_correct = correct_count(7, "../nn_model/data/guess/", "../nn_model/data/actual/", "crystal_list_{}.txt")
+    guess_total = total_count(7, "data/guess/", "crystal_list_{}.txt")
+    actual_total = total_count(7, "data/actual/", "crystal_list_{}.txt")
+    guess_correct = correct_count(7, "data/guess/", "data/actual/", "crystal_list_{}.txt")
     print("guess count:", guess_total, guess_total.sum())
     print("actual count:", actual_total, actual_total.sum())
     print("guess correct:", guess_correct, guess_correct.sum())
@@ -42,9 +42,9 @@ def crystal_stat():
 
 
 def spacegroup_stat():
-    guess_total = total_count(230, "../nn_model/data/guess/", "spacegroup_list_{}.txt")
-    actual_total = total_count(230, "../nn_model/data/actual/", "spacegroup_list_{}.txt")
-    guess_correct = correct_count(230, "../nn_model/data/guess/", "../nn_model/data/actual/", "spacegroup_list_{}.txt")
+    guess_total = total_count(230, "data/guess/", "spacegroup_list_{}.txt")
+    actual_total = total_count(230, "data/actual/", "spacegroup_list_{}.txt")
+    guess_correct = correct_count(230, "data/guess/", "data/actual/", "spacegroup_list_{}.txt")
     print("guess count:", guess_total.sum(), "\n", guess_total)
     print("actual count:", actual_total.sum(), "\n", actual_total)
     print("guess correct:", guess_correct.sum(), "\n", guess_correct)

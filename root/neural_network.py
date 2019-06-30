@@ -33,7 +33,12 @@ def validate_one_epoch(device, model, criterion, valid_loader):
             data_input, data_label = data_input.to(device), data_label.to(device)
             output = model(data_input).view(1, -1)
 
-            val_loss += criterion(output, data_label).item()
+            try:
+                val_loss += criterion(output, data_label).item()
+            except:
+                print(model)
+                print(batch_label[i])
+                exit(2)
 
             if torch.max(output, 1)[1] == data_label:
                 num_correct += 1
