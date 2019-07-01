@@ -3,7 +3,7 @@ import json
 import torch
 import numpy
 
-import crystal_functions
+import crystal
 
 
 def create_valid_list_files(num_bands, in_data_dir, out_list_path):
@@ -45,7 +45,7 @@ def create_actual_crystal_list_files(in_list_path, out_list_dir):
         with open(file_path, "r") as file:
             data_json = json.load(file)
             sgnum = data_json["number"]
-            crysnum = crystal_functions.crystal_number(sgnum)
+            crysnum = crystal.crystal_number(sgnum)
         with open(out_list_dir + "crystal_list_{}.txt".format(crysnum), "a") as file_out:
             file_out.write(file_path + "\n")
         print("\r\tcreate actual list: {}/{}".format(i, len(file_paths)), end="")
@@ -80,7 +80,7 @@ def append_guess_spacegroup_in_crystal_list_files(device, model, crysnum, in_lis
             data_input_np = data_input_np.flatten().T
             data_input = torch.from_numpy(data_input_np).float()
             output = model(data_input.to(device))
-            sgnum = torch.max(output, 0)[1].item() + 1 + crystal_functions.spacegroup_index_lower(crysnum)
+            sgnum = torch.max(output, 0)[1].item() + 1 + crystal.spacegroup_index_lower(crysnum)
         with open(out_list_dir + "spacegroup_list_{}.txt".format(sgnum), "a") as file_out:
             file_out.write(file_path + "\n")
         print("\r\tcreate guess list: {}/{}".format(i, len(file_paths)), end="")

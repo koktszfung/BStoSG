@@ -5,27 +5,28 @@ import torch.nn
 import torch.nn.functional
 
 import data_processing
-import base_models
-import data_loaders
-import network_functions
-import crystal_functions
+import base_model
+import data_loader
+import network
+import crystal
+import analysis
 
 
 # bandstructure to spacegroup
 def main_bs2sg(num_epoch: int = 1):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = base_models.get_bs2sg()
+    model = base_model.get_bs2sg()
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.75)
     criterion = torch.nn.CrossEntropyLoss()
 
-    dataset = data_loaders.SetBs2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in range(1, 231)], 0.1)
-    train_loader, valid_loader = data_loaders.get_valid_train_loader(dataset, 32)
+    dataset = data_loader.SetBs2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in range(1, 231)], 0.1)
+    train_loader, valid_loader = data_loader.get_valid_train_loader(dataset, 32)
 
-    network_functions.validate_train_loop(
+    network.validate_train_loop(
         device, model, optimizer, scheduler, criterion, valid_loader, train_loader, num_epoch
     )
 
@@ -39,17 +40,17 @@ def main_bs2sg(num_epoch: int = 1):
 def main_bs2crys(num_epoch: int = 1):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
-    model = base_models.get_bs2crys()
+    model = base_model.get_bs2crys()
     model = model.to(device)
 
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.75)
     criterion = torch.nn.CrossEntropyLoss()
 
-    dataset = data_loaders.SetBs2Crys(["data/actual/crystal_list_{}.txt".format(i) for i in range(1, 8)], 0.1)
-    train_loader, valid_loader = data_loaders.get_valid_train_loader(dataset, 32)
+    dataset = data_loader.SetBs2Crys(["data/actual/crystal_list_{}.txt".format(i) for i in range(1, 8)], 0.1)
+    train_loader, valid_loader = data_loader.get_valid_train_loader(dataset, 32)
 
-    network_functions.validate_train_loop(
+    network.validate_train_loop(
         device, model, optimizer, scheduler, criterion, valid_loader, train_loader, num_epoch
     )
 
@@ -64,7 +65,7 @@ def main_crys2sg_one(crysnum: int, num_epoch: int = 1):
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     margins = [2, 15, 74, 142, 167, 194, 230]
-    model = base_models.get_crys2sg(
+    model = base_model.get_crys2sg(
         360, 100, 100, margins[crysnum - 1] - margins[crysnum - 2] if crysnum > 1 else 2
     )
     model = model.to(device)
@@ -73,18 +74,16 @@ def main_crys2sg_one(crysnum: int, num_epoch: int = 1):
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.75)
     criterion = torch.nn.CrossEntropyLoss()
 
-    # train on actual data
-    dataset = data_loaders.SetCrys2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
-                                       crystal_functions.spacegroup_number_range(crysnum)], crysnum, 0.1)
-    train_loader, valid_loader = data_loaders.get_valid_train_loader(dataset, 32)
+    dataset = data_loader.SetCrys2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
+                                      crystal.spacegroup_number_range(crysnum)], crysnum, 0.1)
+    train_loader, valid_loader = data_loader.get_valid_train_loader(dataset, 32)
 
-    network_functions.validate_train_loop(
+    network.validate_train_loop(
         device, model, optimizer, scheduler, criterion, valid_loader, train_loader, num_epoch
     )
 
-    # apply on guess data
     data_processing.append_guess_spacegroup_in_crystal_list_files(
-        device, model, crysnum, "data/guess/crystal_list_{}.txt".format(crysnum), "data/guess/"
+        device, model, crysnum, "data/actual/crystal_list_{}.txt".format(crysnum), "data/guess/"
     )
 
 
@@ -109,6 +108,21 @@ if __name__ == "__main__":
     # main_bs2sg(num_epoch=10)
     # main_bs2crys(num_epoch=10)
     # main_crys2sg_all(num_epoch=10)
+
+    # analyse result *
+    # analysis.print_result(range(1, 8), "data/guess/", "data/actual/", "crystal_list_{}.txt")
+    # analysis.print_result(range(1, 231), "data/guess/", "data/actual/", "spacegroup_list_{}.txt")
+    # for c in range(1, 8):
+    #     print("crystal system {}".format(c))
+    #     print("\nbandstructure to crystal system result")
+    #     analysis.print_result(
+    #         [c], "data/guess/", "data/actual/", "crystal_list_{}.txt"
+    #     )
+    #     print("\ncrystal to spacegroup system result")
+    #     analysis.print_result(
+    #         crystal.spacegroup_number_range(c), "data/guess/", "data/actual/", "spacegroup_list_{}.txt"
+    #     )
+    #     print("\n")
 
     torch.cuda.empty_cache()
     import winsound

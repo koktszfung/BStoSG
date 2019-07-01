@@ -4,7 +4,7 @@ from torch.utils.data.sampler import SubsetRandomSampler
 import json
 import numpy
 
-import crystal_functions
+import crystal
 
 
 class SetBs2Sg(Dataset):
@@ -70,7 +70,7 @@ class SetBs2Crys(Dataset):
                     data_input_np = numpy.array(data_json["bands"])
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
-                    data_label_np = numpy.array([crystal_functions.crystal_number(sgnum) - 1])
+                    data_label_np = numpy.array([crystal.crystal_number(sgnum) - 1])
                 if i < split:
                     data_input_valid.append(torch.from_numpy(data_input_np).float())
                     data_label_valid.append(torch.from_numpy(data_label_np).long())
@@ -112,7 +112,7 @@ class SetCrys2Sg(Dataset):
                     data_input_np = numpy.array(data_json["bands"])
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
-                    data_label_np = numpy.array([sgnum - crystal_functions.spacegroup_index_lower(crysnum) - 1])
+                    data_label_np = numpy.array([sgnum - crystal.spacegroup_index_lower(crysnum) - 1])
                 if i < split:
                     data_input_valid.append(torch.from_numpy(data_input_np).float())
                     data_label_valid.append(torch.from_numpy(data_label_np).long())
