@@ -109,7 +109,7 @@ if __name__ == "__main__":
     # main_bs2crys(num_epoch=10)
     # main_crys2sg_all(num_epoch=10)
 
-    # analyse result *
+    # analyse result #
     # analysis.print_result(range(1, 8), "data/guess/", "data/actual/", "crystal_list_{}.txt")
     # analysis.print_result(range(1, 231), "data/guess/", "data/actual/", "spacegroup_list_{}.txt")
     # for c in range(1, 8):
