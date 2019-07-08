@@ -81,6 +81,8 @@ def append_guess_spacegroup_in_crystal_list_files(device, model, crysnum, in_lis
             data_input = torch.from_numpy(data_input_np).float()
             output = model(data_input.to(device))
             sgnum = torch.max(output, 0)[1].item() + 1 + crystal.spacegroup_index_lower(crysnum)
+            if sgnum not in crystal.spacegroup_number_range(crysnum):
+                continue
         with open(out_list_dir + "spacegroup_list_{}.txt".format(sgnum), "a") as file_out:
             file_out.write(file_path + "\n")
         print("\r\tcreate guess list: {}/{}".format(i, len(file_paths)), end="")

@@ -28,7 +28,10 @@ class SetBs2Sg(Dataset):
                     data_input_np = numpy.array(data_json["bands"])
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
-                    data_label_np = numpy.array([sgnum - 1])
+
+                    data_label = sgnum - 1
+
+                    data_label_np = numpy.array([data_label])
                 if i < split:
                     data_input_valid.append(torch.from_numpy(data_input_np).float())
                     data_label_valid.append(torch.from_numpy(data_label_np).long())
@@ -37,16 +40,16 @@ class SetBs2Sg(Dataset):
                     data_label_train.append(torch.from_numpy(data_label_np).long())
             print("\r\tload: {}/{}".format(j, len(list_paths)), end="")
         print("\rload: {}".format(len(list_paths)))
-        self.data_input = data_input_valid + data_input_train
-        self.data_label = data_label_valid + data_label_train
-        self.len = len(self.data_input)
+        self.data_inputs = data_input_valid + data_input_train
+        self.data_labels = data_label_valid + data_label_train
+        self.len = len(self.data_inputs)
         self.valid_size = valid_size
 
     def __len__(self):
         return self.len
 
     def __getitem__(self, index):
-        return self.data_input[index], self.data_label[index]
+        return self.data_inputs[index], self.data_labels[index]
 
 
 class SetBs2Crys(Dataset):
@@ -70,7 +73,10 @@ class SetBs2Crys(Dataset):
                     data_input_np = numpy.array(data_json["bands"])
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
-                    data_label_np = numpy.array([crystal.crystal_number(sgnum) - 1])
+
+                    data_label = crystal.crystal_number(sgnum) - 1
+
+                    data_label_np = numpy.array([data_label])
                 if i < split:
                     data_input_valid.append(torch.from_numpy(data_input_np).float())
                     data_label_valid.append(torch.from_numpy(data_label_np).long())
@@ -79,16 +85,16 @@ class SetBs2Crys(Dataset):
                     data_label_train.append(torch.from_numpy(data_label_np).long())
             print("\r\tload: {}/{}".format(j, len(list_paths)), end="")
         print("\rload: {}".format(len(list_paths)))
-        self.data_input = data_input_valid + data_input_train
-        self.data_label = data_label_valid + data_label_train
-        self.len = len(self.data_input)
+        self.data_inputs = data_input_valid + data_input_train
+        self.data_labels = data_label_valid + data_label_train
+        self.len = len(self.data_inputs)
         self.valid_size = valid_size
 
     def __len__(self):
         return self.len
 
     def __getitem__(self, index):
-        return self.data_input[index], self.data_label[index]
+        return self.data_inputs[index], self.data_labels[index]
 
 
 class SetCrys2Sg(Dataset):
@@ -112,7 +118,16 @@ class SetCrys2Sg(Dataset):
                     data_input_np = numpy.array(data_json["bands"])
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
-                    data_label_np = numpy.array([sgnum - crystal.spacegroup_index_lower(crysnum) - 1])
+
+                    crystal_lower = crystal.spacegroup_index_lower(crysnum)
+                    crystal_upper = crystal.spacegroup_index_upper(crysnum)
+                    crystal_size = crystal_upper - crystal_lower
+                    if sgnum not in range(crystal_lower + 1, crystal_upper + 1):
+                        data_label = crystal_size  # unclassified / rejected
+                    else:
+                        data_label = sgnum - crystal_lower - 1
+
+                    data_label_np = numpy.array([data_label])
                 if i < split:
                     data_input_valid.append(torch.from_numpy(data_input_np).float())
                     data_label_valid.append(torch.from_numpy(data_label_np).long())
@@ -121,16 +136,16 @@ class SetCrys2Sg(Dataset):
                     data_label_train.append(torch.from_numpy(data_label_np).long())
             print("\r\tload: {}/{}".format(j, len(list_paths)), end="")
         print("\rload: {}".format(len(list_paths)))
-        self.data_input = data_input_valid + data_input_train
-        self.data_label = data_label_valid + data_label_train
-        self.len = len(self.data_input)
+        self.data_inputs = data_input_valid + data_input_train
+        self.data_labels = data_label_valid + data_label_train
+        self.len = len(self.data_inputs)
         self.valid_size = valid_size
 
     def __len__(self):
         return self.len
 
     def __getitem__(self, index):
-        return self.data_input[index], self.data_label[index]
+        return self.data_inputs[index], self.data_labels[index]
 
 
 def get_valid_train_loader(dataset,

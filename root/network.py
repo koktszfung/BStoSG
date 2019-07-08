@@ -24,6 +24,8 @@ def train_one_epoch(device, model, optimizer, criterion, train_loader):
 def validate_one_epoch(device, model, criterion, valid_loader):
     model.eval()
     num_valid = len(valid_loader.sampler.indices)
+    if num_valid == 0:
+        raise FileNotFoundError("number of data is 0")
     val_loss = 0.
     num_correct = 0
     for b, (batch_input, batch_label) in enumerate(valid_loader):

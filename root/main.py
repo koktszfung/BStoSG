@@ -66,7 +66,8 @@ def main_crys2sg_one(crysnum: int, num_epoch: int = 1):
 
     margins = [2, 15, 74, 142, 167, 194, 230]
     model = base_model.get_crys2sg(
-        360, 100, 100, margins[crysnum - 1] - margins[crysnum - 2] if crysnum > 1 else 2
+        # 360, 100, 100, margins[crysnum - 1] - margins[crysnum - 2] if crysnum > 1 else 2
+        360, 100, 100, margins[crysnum - 1] - margins[crysnum - 2] + 1 if crysnum > 1 else 3
     )
     model = model.to(device)
 
@@ -74,8 +75,15 @@ def main_crys2sg_one(crysnum: int, num_epoch: int = 1):
     scheduler = torch.optim.lr_scheduler.StepLR(optimizer, step_size=1, gamma=0.75)
     criterion = torch.nn.CrossEntropyLoss()
 
+    # dataset = data_loader.SetCrys2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
+    #                                   crystal.spacegroup_number_range(crysnum)], crysnum, 0.1)
+    #
     dataset = data_loader.SetCrys2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
-                                      crystal.spacegroup_number_range(crysnum)], crysnum, 0.1)
+                                      range(1, 231)], crysnum, 0.1)
+
+    # dataset = data_loader.SetCrys2Sg(["data/guess/crystal_list_{}.txt".format(crysnum)
+    #                                   ], crysnum, 0.1)
+
     train_loader, valid_loader = data_loader.get_valid_train_loader(dataset, 32)
 
     network.validate_train_loop(
@@ -107,11 +115,11 @@ if __name__ == "__main__":
     # generate guess data #
     # main_bs2sg(num_epoch=10)
     # main_bs2crys(num_epoch=10)
-    # main_crys2sg_all(num_epoch=10)
+    main_crys2sg_all(num_epoch=10)
 
     # analyse result #
     # analysis.print_result(range(1, 8), "data/guess/", "data/actual/", "crystal_list_{}.txt")
-    # analysis.print_result(range(1, 231), "data/guess/", "data/actual/", "spacegroup_list_{}.txt")
+    analysis.print_result(range(1, 231), "data/guess/", "data/actual/", "spacegroup_list_{}.txt")
     # for c in range(1, 8):
     #     print("crystal system {}".format(c))
     #     print("\nbandstructure to crystal system result")
