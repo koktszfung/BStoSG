@@ -15,7 +15,7 @@ def get_bs2sg():
     return model
 
 
-def get_bs2crys():
+def get_bs2cs():
     layers = [
         nn.LeakyReLU(),
         nn.Linear(360, 200),
@@ -28,7 +28,7 @@ def get_bs2crys():
     return model
 
 
-def get_crys2sg(*args):
+def get_cs2sg(*args):
     layers = []
     for i in range(len(args) - 1):
         layers.append(nn.LeakyReLU())

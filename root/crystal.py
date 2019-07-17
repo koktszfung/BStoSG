@@ -18,3 +18,7 @@ def spacegroup_index_upper(c: int):
 
 def spacegroup_number_range(c: int):
     return range(spacegroup_index_lower(c) + 1, spacegroup_index_upper(c) + 1)
+
+
+def crystal_system_sizes():
+    return [2, 15, 74, 142, 167, 194, 230]

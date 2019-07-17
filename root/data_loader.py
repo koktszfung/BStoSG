@@ -52,7 +52,7 @@ class SetBs2Sg(Dataset):
         return self.data_inputs[index], self.data_labels[index]
 
 
-class SetBs2Crys(Dataset):
+class SetBs2Cs(Dataset):
     def __init__(self, list_paths, valid_size):
         data_input_valid = []
         data_label_valid = []
@@ -97,8 +97,8 @@ class SetBs2Crys(Dataset):
         return self.data_inputs[index], self.data_labels[index]
 
 
-class SetCrys2Sg(Dataset):
-    def __init__(self, list_paths, crysnum, valid_size):
+class SetCs2Sg(Dataset):
+    def __init__(self, list_paths, csnum, valid_size):
         data_input_valid = []
         data_label_valid = []
         data_input_train = []
@@ -119,8 +119,8 @@ class SetCrys2Sg(Dataset):
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
 
-                    crystal_lower = crystal.spacegroup_index_lower(crysnum)
-                    crystal_upper = crystal.spacegroup_index_upper(crysnum)
+                    crystal_lower = crystal.spacegroup_index_lower(csnum)
+                    crystal_upper = crystal.spacegroup_index_upper(csnum)
                     crystal_size = crystal_upper - crystal_lower
                     if sgnum not in range(crystal_lower + 1, crystal_upper + 1):
                         data_label = crystal_size  # unclassified / rejected
@@ -171,8 +171,8 @@ def get_valid_train_loader(dataset,
 
 if __name__ == '__main__':
     # bs2sg = SetBs2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in range(1, 231)], 0.1)
-    # bs2crys = SetBs2Crys(["data/actual/crystal_list_{}.txt".format(i) for i in range(1, 8)], 0.1)
+    # bs2cs = SetBs2Cs(["data/actual/crystal_list_{}.txt".format(i) for i in range(1, 8)], 0.1)
     # for c in range(1, 8):
-    #     crys2sg = SetCrys2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
+    #     cs2sg = SetCs2Sg(["data/actual/spacegroup_list_{}.txt".format(i) for i in
     #                           crystal_functions.spacegroup_number_range(c)], c, 0.1)
     pass
