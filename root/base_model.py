@@ -4,7 +4,7 @@ import torch.nn as nn
 def get_bs2sg():
     layers = [
         nn.LeakyReLU(),
-        nn.Linear(360, 100),
+        nn.Linear(1100, 100),
         nn.LeakyReLU(),
         nn.Linear(100, 100),
         nn.LeakyReLU(),
@@ -18,7 +18,7 @@ def get_bs2sg():
 def get_bs2cs():
     layers = [
         nn.LeakyReLU(),
-        nn.Linear(360, 200),
+        nn.Linear(1100, 200),
         nn.LeakyReLU(),
         nn.Linear(200, 100),
         nn.LeakyReLU(),

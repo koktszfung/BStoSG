@@ -8,7 +8,7 @@ import crystal
 
 
 class SetBs2Sg(Dataset):
-    def __init__(self, list_paths, valid_size):
+    def __init__(self, hs_indices, list_paths, valid_size):
         data_input_valid = []
         data_label_valid = []
         data_input_train = []
@@ -26,6 +26,7 @@ class SetBs2Sg(Dataset):
                 with open(file_name, "r") as file:
                     data_json = json.load(file)
                     data_input_np = numpy.array(data_json["bands"])
+                    data_input_np = data_input_np[:, hs_indices]
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
 
@@ -53,7 +54,7 @@ class SetBs2Sg(Dataset):
 
 
 class SetBs2Cs(Dataset):
-    def __init__(self, list_paths, valid_size):
+    def __init__(self,  hs_indices, list_paths, valid_size):
         data_input_valid = []
         data_label_valid = []
         data_input_train = []
@@ -71,6 +72,7 @@ class SetBs2Cs(Dataset):
                 with open(file_name, "r") as file:
                     data_json = json.load(file)
                     data_input_np = numpy.array(data_json["bands"])
+                    data_input_np = data_input_np[:, hs_indices]
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
 
@@ -98,7 +100,7 @@ class SetBs2Cs(Dataset):
 
 
 class SetCs2Sg(Dataset):
-    def __init__(self, list_paths, csnum, valid_size):
+    def __init__(self, csnum, hs_indices, list_paths, valid_size):
         data_input_valid = []
         data_label_valid = []
         data_input_train = []
@@ -116,6 +118,7 @@ class SetCs2Sg(Dataset):
                 with open(file_name, "r") as file:
                     data_json = json.load(file)
                     data_input_np = numpy.array(data_json["bands"])
+                    data_input_np = data_input_np[:, hs_indices]
                     data_input_np = data_input_np.flatten().T
                     sgnum = data_json["number"]
 

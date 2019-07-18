@@ -57,13 +57,14 @@ def create_actual_crystal_list_files(in_list_path, out_list_dir):
     print("\rcreate actual list: {}".format(len(file_paths)))
 
 
-def create_guess_list_files(device, model, num_group, in_list_path, out_list_dir, out_list_format):
+def create_guess_list_files(device, model, num_group, hs_indices, in_list_path, out_list_dir, out_list_format):
     create_empty_list_files(num_group, out_list_dir, out_list_format)
     file_paths = numpy.loadtxt(in_list_path, "U60")
     for i, file_path in enumerate(file_paths):
         with open(file_path, "r") as file:
             data_json = json.load(file)
             data_input_np = numpy.array(data_json["bands"])
+            data_input_np = data_input_np[:, hs_indices]
             data_input_np = data_input_np.flatten().T
             data_input = torch.from_numpy(data_input_np).float()
             output = model(data_input.to(device))
@@ -74,7 +75,7 @@ def create_guess_list_files(device, model, num_group, in_list_path, out_list_dir
     print("\rcreate guess list: {}".format(len(file_paths)))
 
 
-def append_guess_spacegroup_in_crystal_list_files(device, model, csnum, in_list_path, out_list_dir):
+def append_guess_spacegroup_in_crystal_list_files(device, model, csnum, hs_indices, in_list_path, out_list_dir):
     if os.stat(in_list_path).st_size == 0:
         return
     file_paths = numpy.loadtxt(in_list_path, "U60")
@@ -82,6 +83,7 @@ def append_guess_spacegroup_in_crystal_list_files(device, model, csnum, in_list_
         with open(file_path, "r") as file:
             data_json = json.load(file)
             data_input_np = numpy.array(data_json["bands"])
+            data_input_np = data_input_np[:, hs_indices]
             data_input_np = data_input_np.flatten().T
             data_input = torch.from_numpy(data_input_np).float()
             output = model(data_input.to(device))
